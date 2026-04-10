@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HEI Work
 
-## Getting Started
+Sistema de project management donde humanos y agentes IA trabajan juntos como iguales. Capa de ejecucion del HayExperiencia OS.
 
-First, run the development server:
+- Dominio objetivo: `hei-work.hayexperiencia.com`
+- Puerto: `3002`
+- Stack: Next.js 16 + TypeScript + Tailwind v4 + PostgreSQL 17 + NextAuth + Worker Node + node-cron
+- LLM: CLIProxyAPI (Claude Max + Gemini, costo $0)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Documentacion
+
+La fuente de verdad vive en el vault de Obsidian del operador (no en este repo):
+
+- `HayExperiencia OS/HEI Work/HEI Work.md` — overview
+- `HayExperiencia OS/HEI Work/Arquitectura HEI Work.md`
+- `HayExperiencia OS/HEI Work/Esquema BD HEI Work.md`
+- `HayExperiencia OS/HEI Work/Sprints/Sprint 1 - Cimientos.md` (a Sprint 4)
+- `HayExperiencia OS/HEI Work/Runbooks/Ejecucion con Claude Code.md`
+
+## Estructura
+
+```
+hei-work/
+  CLAUDE.md                  reglas de seguridad para Claude Code
+  sql/                       migraciones idempotentes
+    001_create_tables.sql
+    002_seed_initial_data.sql
+  src/
+    app/                     App Router (web + API)
+    lib/                     db pool, auth, types
+    worker/                  proceso separado con node-cron
+    components/ui/
+  Dockerfile                 multi-stage, web + worker en un container
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Comandos
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev          # next dev en :3002
+npm run build        # next build + tsc del worker
+npm start            # node dist/worker/index.js & next start -p 3002
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Reglas de seguridad
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ver [`CLAUDE.md`](./CLAUDE.md). Resumen: este repo se construye con `--dangerously-skip-permissions`. Las reglas son el perimetro para no romper hayexperiencia.com, cotizador, ni Harry, que comparten el mismo VPS.
