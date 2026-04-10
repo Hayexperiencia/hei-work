@@ -24,17 +24,17 @@ export default function TagsInput({ value, onChange, placeholder }: Props) {
   }
 
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-1 rounded border border-neutral-800 bg-neutral-900 p-1.5">
+    <div className="mt-1 flex flex-wrap items-center gap-1 rounded border border-[var(--border-base)] bg-[var(--bg-input)] p-1.5">
       {value.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded bg-[#ffcd07]/20 px-1.5 py-0.5 text-[10px] text-[#ffcd07] ring-1 ring-[#ffcd07]/30"
+          className="inline-flex items-center gap-1 rounded bg-[var(--accent)]/20 px-1.5 py-0.5 text-[10px] text-[var(--accent)] ring-1 ring-[#ffcd07]/30"
         >
           {tag}
           <button
             type="button"
             onClick={() => removeTag(tag)}
-            className="text-[#ffcd07]/70 hover:text-[#ffcd07]"
+            className="text-[var(--accent)]/70 hover:text-[var(--accent)]"
             aria-label={`Quitar ${tag}`}
           >
             ×
@@ -55,7 +55,7 @@ export default function TagsInput({ value, onChange, placeholder }: Props) {
         }}
         onBlur={() => draft && addTag(draft)}
         placeholder={value.length === 0 ? (placeholder ?? "agregar etiqueta...") : ""}
-        className="min-w-[80px] flex-1 bg-transparent text-xs text-white placeholder:text-neutral-600 focus:outline-none"
+        className="min-w-[80px] flex-1 bg-transparent text-xs text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none"
       />
     </div>
   );

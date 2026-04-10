@@ -32,7 +32,7 @@ export default function CommentThread({ comments }: Props) {
 
   if (comments.length === 0) {
     return (
-      <div className="rounded border border-dashed border-neutral-800 px-4 py-6 text-center text-xs text-neutral-600">
+      <div className="rounded border border-dashed border-[var(--border-base)] px-4 py-6 text-center text-xs text-[var(--fg-muted)]">
         Sin comentarios aun. Escribe el primero.
       </div>
     );
@@ -51,13 +51,13 @@ export default function CommentThread({ comments }: Props) {
             className={`rounded-lg border p-3 ${
               isAgent
                 ? "border-emerald-500/30 bg-emerald-950/20"
-                : "border-neutral-800 bg-neutral-900/40"
+                : "border-[var(--border-base)] bg-[var(--bg-card)]"
             }`}
           >
             <div className="flex items-center gap-2 text-xs">
               <span
                 className={`font-semibold ${
-                  isAgent ? "text-emerald-300" : "text-neutral-200"
+                  isAgent ? "text-emerald-300" : "text-[var(--fg-primary)]"
                 }`}
               >
                 {c.author_name ?? "anonimo"}
@@ -67,10 +67,10 @@ export default function CommentThread({ comments }: Props) {
                   agente
                 </span>
               )}
-              <span className="text-neutral-500">{timeAgo(c.created_at)}</span>
+              <span className="text-[var(--fg-muted)]">{timeAgo(c.created_at)}</span>
             </div>
             <div
-              className="prose prose-sm prose-invert mt-2 max-w-none text-sm text-neutral-200 [&_a]:text-[#ffcd07] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-neutral-900 [&_code]:px-1 [&_code]:rounded"
+              className="prose prose-sm prose-invert mt-2 max-w-none text-sm text-[var(--fg-primary)] [&_a]:text-[var(--accent)] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-[var(--bg-input)] [&_code]:px-1 [&_code]:rounded"
               dangerouslySetInnerHTML={{ __html: renderMarkdown(c.body) }}
             />
             {hasMeta && (
@@ -83,7 +83,7 @@ export default function CommentThread({ comments }: Props) {
               </button>
             )}
             {hasMeta && showMeta && (
-              <pre className="mt-2 overflow-x-auto rounded bg-neutral-950 p-2 text-[10px] text-neutral-400">
+              <pre className="mt-2 overflow-x-auto rounded bg-[var(--bg-elevated)] p-2 text-[10px] text-[var(--fg-secondary)]">
                 {JSON.stringify(c.metadata, null, 2)}
               </pre>
             )}

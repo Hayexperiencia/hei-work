@@ -138,15 +138,15 @@ export default function CommentInput({ taskId, members, onCreated }: Props) {
     .slice(0, 6);
 
   return (
-    <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-900/40">
+    <div className="mt-4 rounded-lg border border-[var(--border-base)] bg-[var(--bg-card)]">
       {/* Tabs */}
-      <div className="flex items-center justify-between border-b border-neutral-800 px-2 py-1">
+      <div className="flex items-center justify-between border-b border-[var(--border-base)] px-2 py-1">
         <div className="flex gap-1">
           <button
             type="button"
             onClick={() => setTab("edit")}
             className={`rounded px-2 py-1 text-[10px] uppercase tracking-wide ${
-              tab === "edit" ? "bg-neutral-800 text-white" : "text-neutral-500 hover:text-white"
+              tab === "edit" ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]" : "text-[var(--fg-muted)] hover:text-[var(--fg-primary)]"
             }`}
           >
             Editar
@@ -155,7 +155,7 @@ export default function CommentInput({ taskId, members, onCreated }: Props) {
             type="button"
             onClick={() => setTab("preview")}
             className={`rounded px-2 py-1 text-[10px] uppercase tracking-wide ${
-              tab === "preview" ? "bg-neutral-800 text-white" : "text-neutral-500 hover:text-white"
+              tab === "preview" ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]" : "text-[var(--fg-muted)] hover:text-[var(--fg-primary)]"
             }`}
           >
             Vista
@@ -169,7 +169,7 @@ export default function CommentInput({ taskId, members, onCreated }: Props) {
                 type="button"
                 title={a.title}
                 onClick={() => applyToolbar(a)}
-                className="rounded px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white font-mono"
+                className="rounded px-2 py-1 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--fg-primary)] font-mono"
               >
                 {a.label}
               </button>
@@ -188,49 +188,49 @@ export default function CommentInput({ taskId, members, onCreated }: Props) {
             onKeyDown={handleKeyDown}
             rows={4}
             placeholder="Comentar... markdown soportado. @nombre para mencionar. Cmd/Ctrl+Enter para enviar."
-            className="w-full resize-none bg-transparent text-sm text-white placeholder:text-neutral-600 focus:outline-none"
+            className="w-full resize-none bg-transparent text-sm text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none"
           />
         ) : (
           <div
-            className="prose prose-sm prose-invert min-h-[6rem] max-w-none text-sm text-neutral-200 [&_a]:text-[#ffcd07] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-neutral-900 [&_code]:px-1 [&_code]:rounded"
+            className="prose prose-sm prose-invert min-h-[6rem] max-w-none text-sm text-[var(--fg-primary)] [&_a]:text-[var(--accent)] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-[var(--bg-input)] [&_code]:px-1 [&_code]:rounded"
             dangerouslySetInnerHTML={{
               __html: body.trim()
                 ? renderMarkdown(body)
-                : '<p class="text-neutral-600">vacio</p>',
+                : '<p class="text-[var(--fg-muted)]">vacio</p>',
             }}
           />
         )}
 
         {showMentions && filteredMembers.length > 0 && (
-          <div className="absolute left-3 top-full z-10 mt-1 max-h-48 w-56 overflow-y-auto rounded-md border border-neutral-700 bg-neutral-950 shadow-lg">
+          <div className="absolute left-3 top-full z-10 mt-1 max-h-48 w-56 overflow-y-auto rounded-md border border-[var(--border-strong)] bg-[var(--bg-elevated)] shadow-lg">
             {filteredMembers.map((m) => (
               <button
                 key={m.id}
                 type="button"
                 onClick={() => insertMention(m.name.replace(/^@/, ""))}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-neutral-800"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-[var(--bg-hover)]"
               >
                 <span
                   className={
-                    m.type === "agent" ? "text-emerald-300" : "text-neutral-100"
+                    m.type === "agent" ? "text-emerald-300" : "text-[var(--fg-primary)]"
                   }
                 >
                   {m.name}
                 </span>
-                <span className="ml-2 text-[10px] text-neutral-500">{m.role}</span>
+                <span className="ml-2 text-[10px] text-[var(--fg-muted)]">{m.role}</span>
               </button>
             ))}
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-800 px-3 py-2">
-        <span className="text-[10px] text-neutral-600">{body.length}/5000</span>
+      <div className="flex items-center justify-between border-t border-[var(--border-base)] px-3 py-2">
+        <span className="text-[10px] text-[var(--fg-muted)]">{body.length}/5000</span>
         <button
           type="button"
           onClick={submit}
           disabled={submitting || !body.trim()}
-          className="rounded-md bg-[#ffcd07] px-3 py-1.5 text-xs font-semibold text-[#0a0a1a] hover:brightness-110 disabled:opacity-40"
+          className="rounded-md bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--accent-fg)] hover:brightness-110 disabled:opacity-40"
         >
           {submitting ? "Enviando..." : "Comentar"}
         </button>

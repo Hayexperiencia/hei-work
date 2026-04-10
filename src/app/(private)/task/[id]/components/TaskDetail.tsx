@@ -113,7 +113,7 @@ export default function TaskDetail({
         {/* Columna principal — fields + descripcion (3/4) */}
         <div className="lg:col-span-3 space-y-6">
           <div>
-            <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500">
+            <div className="mb-1 flex items-center gap-2 text-xs text-[var(--fg-muted)]">
               <span
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ background: task.project_color }}
@@ -134,12 +134,12 @@ export default function TaskDetail({
                     setEditingTitle(false);
                   }
                 }}
-                className="w-full bg-transparent text-2xl font-semibold text-white border-b border-[#ffcd07] focus:outline-none"
+                className="w-full bg-transparent text-2xl font-semibold text-[var(--fg-primary)] border-b border-[#ffcd07] focus:outline-none"
               />
             ) : (
               <h1
                 onClick={() => setEditingTitle(true)}
-                className="cursor-text text-2xl font-semibold text-white hover:bg-neutral-900/40 rounded px-1 -mx-1"
+                className="cursor-text text-2xl font-semibold text-[var(--fg-primary)] hover:bg-[var(--bg-card)] rounded px-1 -mx-1"
                 title="Click para editar"
               >
                 {task.title}
@@ -229,7 +229,7 @@ export default function TaskDetail({
             </Field>
 
             <Field label="Creada">
-              <div className="mt-1 text-xs text-neutral-400">
+              <div className="mt-1 text-xs text-[var(--fg-secondary)]">
                 {new Date(task.created_at).toLocaleDateString("es-CO", {
                   day: "2-digit",
                   month: "short",
@@ -248,8 +248,8 @@ export default function TaskDetail({
           {/* Descripcion */}
           <section>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wide text-neutral-500">
-                Descripcion {savingDesc && <span className="text-neutral-600">guardando...</span>}
+              <span className="text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
+                Descripcion {savingDesc && <span className="text-[var(--fg-muted)]">guardando...</span>}
               </span>
               <div className="flex gap-1">
                 <button
@@ -257,8 +257,8 @@ export default function TaskDetail({
                   onClick={() => setDescMode("edit")}
                   className={`rounded px-2 py-0.5 text-[10px] uppercase ${
                     descMode === "edit"
-                      ? "bg-neutral-800 text-white"
-                      : "text-neutral-500 hover:text-white"
+                      ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]"
+                      : "text-[var(--fg-muted)] hover:text-[var(--fg-primary)]"
                   }`}
                 >
                   Editar
@@ -268,8 +268,8 @@ export default function TaskDetail({
                   onClick={() => setDescMode("preview")}
                   className={`rounded px-2 py-0.5 text-[10px] uppercase ${
                     descMode === "preview"
-                      ? "bg-neutral-800 text-white"
-                      : "text-neutral-500 hover:text-white"
+                      ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]"
+                      : "text-[var(--fg-muted)] hover:text-[var(--fg-primary)]"
                   }`}
                 >
                   Vista
@@ -283,16 +283,16 @@ export default function TaskDetail({
                 onBlur={saveDesc}
                 rows={8}
                 placeholder="Markdown soportado. Click fuera para guardar."
-                className="w-full rounded border border-neutral-800 bg-neutral-900 p-3 text-sm text-white focus:border-[#ffcd07] focus:outline-none"
+                className="w-full rounded border border-[var(--border-base)] bg-[var(--bg-input)] p-3 text-sm text-[var(--fg-primary)] focus:border-[var(--accent)] focus:outline-none"
               />
             ) : (
               <div
                 onClick={() => setDescMode("edit")}
-                className="prose prose-sm prose-invert min-h-[5rem] cursor-text rounded border border-neutral-800 bg-neutral-900/40 p-3 text-sm text-neutral-200 [&_a]:text-[#ffcd07] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-neutral-900 [&_code]:px-1 [&_code]:rounded"
+                className="prose prose-sm prose-invert min-h-[5rem] cursor-text rounded border border-[var(--border-base)] bg-[var(--bg-card)] p-3 text-sm text-[var(--fg-primary)] [&_a]:text-[var(--accent)] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-[var(--bg-input)] [&_code]:px-1 [&_code]:rounded"
                 dangerouslySetInnerHTML={{
                   __html: descDraft.trim()
                     ? renderMarkdown(descDraft)
-                    : '<p class="text-neutral-600">Sin descripcion. Click para escribir.</p>',
+                    : '<p class="text-[var(--fg-muted)]">Sin descripcion. Click para escribir.</p>',
                 }}
               />
             )}
@@ -302,7 +302,7 @@ export default function TaskDetail({
         {/* Columna comentarios (1/4) */}
         <aside className="lg:col-span-1">
           <div className="sticky top-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-wide text-neutral-500">
+            <div className="text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
               Hilo · {comments.length} comentario{comments.length === 1 ? "" : "s"}
             </div>
             <CommentThread comments={comments} />
@@ -338,7 +338,7 @@ export default function TaskDetail({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wide text-neutral-500">{label}</div>
+      <div className="text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">{label}</div>
       {children}
     </div>
   );

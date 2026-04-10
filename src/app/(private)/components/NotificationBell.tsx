@@ -27,12 +27,12 @@ export default function NotificationBell() {
   return (
     <Link
       href="/notifications"
-      className="relative flex items-center gap-2 rounded-md px-3 py-2 text-sm text-neutral-300 hover:bg-neutral-900 hover:text-white"
+      className="relative flex items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--fg-primary)]"
     >
       <span aria-hidden="true">🔔</span>
       <span>Notificaciones</span>
       {unread > 0 && (
-        <span className="absolute right-2 top-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[#ffcd07] px-1 text-[10px] font-bold text-[#0a0a1a]">
+        <span className="absolute right-2 top-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[10px] font-bold text-[var(--accent-fg)]">
           {unread > 99 ? "99+" : unread}
         </span>
       )}

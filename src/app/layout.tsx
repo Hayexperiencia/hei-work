@@ -12,6 +12,15 @@ export const metadata: Metadata = {
   description: "Tablero compartido humanos + agentes — HayExperiencia OS",
 };
 
+const themeInitScript = `(function(){
+  try {
+    var t = localStorage.getItem('hei-theme') || 'dark';
+    document.documentElement.classList.add(t === 'light' ? 'light' : 'dark');
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+  }
+})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,9 +29,13 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${montserrat.variable} h-full antialiased`}
+      className={`${montserrat.variable} h-full antialiased dark`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-[#0a0a1a] text-white flex flex-col">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full bg-[var(--bg-base)] text-[var(--fg-primary)] flex flex-col">
         {children}
       </body>
     </html>

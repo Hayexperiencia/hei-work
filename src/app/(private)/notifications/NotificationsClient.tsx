@@ -76,17 +76,17 @@ export default function NotificationsClient({ initial }: Props) {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Notificaciones</h1>
-          <p className="text-xs text-neutral-500 mt-1">
+          <p className="text-xs text-[var(--fg-muted)] mt-1">
             {unreadCount} sin leer · {notifications.length} totales
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded border border-neutral-800 p-0.5">
+          <div className="flex rounded border border-[var(--border-base)] p-0.5">
             <button
               type="button"
               onClick={() => setFilter("all")}
               className={`rounded px-2 py-1 text-xs ${
-                filter === "all" ? "bg-neutral-800 text-white" : "text-neutral-500"
+                filter === "all" ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]" : "text-[var(--fg-muted)]"
               }`}
             >
               Todas
@@ -95,7 +95,7 @@ export default function NotificationsClient({ initial }: Props) {
               type="button"
               onClick={() => setFilter("unread")}
               className={`rounded px-2 py-1 text-xs ${
-                filter === "unread" ? "bg-neutral-800 text-white" : "text-neutral-500"
+                filter === "unread" ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]" : "text-[var(--fg-muted)]"
               }`}
             >
               No leidas
@@ -105,7 +105,7 @@ export default function NotificationsClient({ initial }: Props) {
             <button
               type="button"
               onClick={markAllRead}
-              className="rounded border border-neutral-700 px-2 py-1 text-xs text-neutral-300 hover:bg-neutral-900"
+              className="rounded border border-[var(--border-strong)] px-2 py-1 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-input)]"
             >
               Marcar todas
             </button>
@@ -115,7 +115,7 @@ export default function NotificationsClient({ initial }: Props) {
 
       <div className="space-y-2">
         {notifications.length === 0 && (
-          <div className="rounded border border-dashed border-neutral-800 px-4 py-8 text-center text-xs text-neutral-600">
+          <div className="rounded border border-dashed border-[var(--border-base)] px-4 py-8 text-center text-xs text-[var(--fg-muted)]">
             No hay notificaciones.
           </div>
         )}
@@ -127,25 +127,25 @@ export default function NotificationsClient({ initial }: Props) {
               key={n.id}
               className={`rounded-lg border p-3 transition ${
                 n.read_at
-                  ? "border-neutral-800 bg-neutral-900/20"
-                  : "border-[#ffcd07]/30 bg-[#ffcd07]/5"
+                  ? "border-[var(--border-base)] bg-[var(--bg-card)]"
+                  : "border-[#ffcd07]/30 bg-[var(--accent)]/5"
               }`}
             >
               <div className="flex items-start gap-3">
                 <span
                   className={`rounded px-1.5 py-0.5 text-[9px] uppercase tracking-wide ${
-                    TYPE_COLOR[n.type] ?? "bg-neutral-700"
+                    TYPE_COLOR[n.type] ?? "bg-[var(--bg-hover)]"
                   }`}
                 >
                   {n.type.replace("_", " ")}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-neutral-200">
+                  <div className="text-sm text-[var(--fg-primary)]">
                     <span
                       className={
                         n.actor_type === "agent"
                           ? "font-semibold text-emerald-300"
-                          : "font-semibold text-white"
+                          : "font-semibold text-[var(--fg-primary)]"
                       }
                     >
                       {n.actor_name ?? "Sistema"}
@@ -155,14 +155,14 @@ export default function NotificationsClient({ initial }: Props) {
                       <Link
                         href={`/task/${n.task_id}`}
                         onClick={() => !n.read_at && markOne(n.id)}
-                        className="text-[#ffcd07] hover:underline"
+                        className="text-[var(--accent)] hover:underline"
                       >
                         {n.task_title ?? `tarea #${n.task_id}`}
                       </Link>
                     )}
                   </div>
                   {n.project_name && (
-                    <div className="mt-1 flex items-center gap-1 text-[10px] text-neutral-500">
+                    <div className="mt-1 flex items-center gap-1 text-[10px] text-[var(--fg-muted)]">
                       <span
                         className="inline-block h-2 w-2 rounded-full"
                         style={{ background: n.project_color ?? "#a0a0a0" }}
@@ -171,20 +171,20 @@ export default function NotificationsClient({ initial }: Props) {
                     </div>
                   )}
                   {preview && (
-                    <div className="mt-2 line-clamp-2 text-xs text-neutral-400">
+                    <div className="mt-2 line-clamp-2 text-xs text-[var(--fg-secondary)]">
                       {preview}
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className="text-[10px] text-neutral-500">
+                  <span className="text-[10px] text-[var(--fg-muted)]">
                     {timeAgo(n.created_at)}
                   </span>
                   {!n.read_at && (
                     <button
                       type="button"
                       onClick={() => markOne(n.id)}
-                      className="text-[10px] text-[#ffcd07] hover:underline"
+                      className="text-[10px] text-[var(--accent)] hover:underline"
                     >
                       marcar leida
                     </button>

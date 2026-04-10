@@ -144,17 +144,17 @@ export default function FiltersBar({ projects, members, filters, onApply }: Prop
       </Field>
 
       <Field label="Etiquetas">
-        <div className="mt-1 flex flex-wrap items-center gap-1 rounded border border-neutral-700 bg-neutral-900 px-1.5 py-1">
+        <div className="mt-1 flex flex-wrap items-center gap-1 rounded border border-[var(--border-strong)] bg-[var(--bg-input)] px-1.5 py-1">
           {draft.tags.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1 rounded bg-[#ffcd07]/20 px-1.5 py-0.5 text-[10px] text-[#ffcd07]"
+              className="inline-flex items-center gap-1 rounded bg-[var(--accent)]/20 px-1.5 py-0.5 text-[10px] text-[var(--accent)]"
             >
               {t}
               <button
                 type="button"
                 onClick={() => removeTag(t)}
-                className="text-[#ffcd07]/60 hover:text-[#ffcd07]"
+                className="text-[var(--accent)]/60 hover:text-[var(--accent)]"
               >
                 ×
               </button>
@@ -170,7 +170,7 @@ export default function FiltersBar({ projects, members, filters, onApply }: Prop
               }
             }}
             placeholder="enter para agregar"
-            className="min-w-[80px] flex-1 bg-transparent text-[10px] text-white placeholder:text-neutral-600 focus:outline-none"
+            className="min-w-[80px] flex-1 bg-transparent text-[10px] text-[var(--fg-primary)] placeholder:text-[var(--fg-muted)] focus:outline-none"
           />
         </div>
       </Field>
@@ -179,7 +179,7 @@ export default function FiltersBar({ projects, members, filters, onApply }: Prop
         <button
           type="button"
           onClick={clearAll}
-          className="self-end rounded border border-neutral-700 px-2 py-1.5 text-[10px] text-neutral-400 hover:bg-neutral-900 hover:text-white"
+          className="self-end rounded border border-[var(--border-strong)] px-2 py-1.5 text-[10px] text-[var(--fg-secondary)] hover:bg-[var(--bg-input)] hover:text-[var(--fg-primary)]"
         >
           Limpiar filtros
         </button>
@@ -209,7 +209,7 @@ export default function FiltersBar({ projects, members, filters, onApply }: Prop
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[9px] uppercase tracking-wide text-neutral-600">{label}</div>
+      <div className="text-[9px] uppercase tracking-wide text-[var(--fg-muted)]">{label}</div>
       {children}
     </div>
   );

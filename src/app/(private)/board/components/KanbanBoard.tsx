@@ -44,7 +44,8 @@ export default function KanbanBoard({
   const [showNewTask, setShowNewTask] = React.useState(false);
   const [showNewProject, setShowNewProject] = React.useState(false);
   const [showNewStatus, setShowNewStatus] = React.useState(false);
-  const [draggingId, setDraggingId] = React.useState<number | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = React.useState<number | null>(null);
+  const [draggingStatusId, setDraggingStatusId] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     setTasks(initialTasks);
@@ -70,10 +71,10 @@ export default function KanbanBoard({
 
   React.useEffect(() => {
     const interval = setInterval(() => {
-      if (!draggingId) fetchTasks();
+      if (!draggingTaskId && !draggingStatusId) fetchTasks();
     }, 10_000);
     return () => clearInterval(interval);
-  }, [fetchTasks, draggingId]);
+  }, [fetchTasks, draggingTaskId, draggingStatusId]);
 
   const grouped = React.useMemo(() => {
     const map: Record<string, TaskWithAssignee[]> = {};
@@ -85,8 +86,8 @@ export default function KanbanBoard({
     return map;
   }, [tasks, statuses]);
 
-  async function handleDrop(targetStatus: string, taskId: number) {
-    setDraggingId(null);
+  async function handleTaskDrop(targetStatus: string, taskId: number) {
+    setDraggingTaskId(null);
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === targetStatus) return;
 
@@ -110,6 +111,75 @@ export default function KanbanBoard({
     }
   }
 
+  async function handleStatusReorder(draggedId: number, targetId: number) {
+    setDraggingStatusId(null);
+    if (draggedId === targetId) return;
+    const draggedIdx = statuses.findIndex((s) => s.id === draggedId);
+    const targetIdx = statuses.findIndex((s) => s.id === targetId);
+    if (draggedIdx === -1 || targetIdx === -1) return;
+    const next = [...statuses];
+    const [moved] = next.splice(draggedIdx, 1);
+    next.splice(targetIdx, 0, moved);
+    setStatuses(next);
+    try {
+      await fetch("/api/statuses/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ordered_ids: next.map((s) => s.id) }),
+      });
+    } catch (err) {
+      alert("No se pudo reordenar: " + (err as Error).message);
+      setStatuses(initialStatuses);
+    }
+  }
+
+  async function handleStatusRename(id: number, label: string) {
+    if (!label.trim()) return;
+    setStatuses((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, label: label.trim() } : s)),
+    );
+    try {
+      await fetch(`/api/statuses/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: label.trim() }),
+      });
+    } catch (err) {
+      alert("Error: " + (err as Error).message);
+    }
+  }
+
+  async function handleStatusDelete(id: number) {
+    const status = statuses.find((s) => s.id === id);
+    if (!status) return;
+    if (status.is_default) {
+      alert("No puedes eliminar el estado por defecto.");
+      return;
+    }
+    const taskCount = (grouped[status.key] ?? []).length;
+    const fallback = statuses.find((s) => s.is_default)?.key ?? "backlog";
+    if (
+      !confirm(
+        `Eliminar el estado "${status.label}"?${
+          taskCount > 0
+            ? `\n\n${taskCount} tareas en este estado se moveran a "${fallback}".`
+            : ""
+        }`,
+      )
+    )
+      return;
+    try {
+      const r = await fetch(`/api/statuses/${id}?fallback=${fallback}`, {
+        method: "DELETE",
+      });
+      if (!r.ok) throw new Error("delete failed");
+      setStatuses((prev) => prev.filter((s) => s.id !== id));
+      fetchTasks();
+    } catch (err) {
+      alert("Error: " + (err as Error).message);
+    }
+  }
+
   function applyFilters(next: BoardFilters) {
     const usp = new URLSearchParams();
     if (next.project) usp.set("project", String(next.project));
@@ -123,11 +193,11 @@ export default function KanbanBoard({
     router.push(qs ? `/board?${qs}` : "/board");
   }
 
-  async function handleProjectCreated(p: Project) {
+  function handleProjectCreated() {
     setShowNewProject(false);
     router.refresh();
   }
-  async function handleStatusCreated(s: WorkflowStatus) {
+  function handleStatusCreated(s: WorkflowStatus) {
     setStatuses((prev) => [...prev, s].sort((a, b) => a.position - b.position));
     setShowNewStatus(false);
   }
@@ -137,12 +207,12 @@ export default function KanbanBoard({
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="border-b border-neutral-800 px-6 py-4">
+    <div className="flex h-screen flex-col overflow-hidden">
+      <header className="flex-shrink-0 sticky top-0 z-20 border-b border-[var(--border-base)] bg-[var(--bg-elevated)] px-6 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-xl font-semibold">Board</h1>
-            <p className="text-xs text-neutral-500 mt-1">
+            <p className="text-xs text-[var(--fg-muted)] mt-1">
               {tasks.length} tarea{tasks.length === 1 ? "" : "s"}
               {filters.project
                 ? ` · ${projects.find((p) => p.id === filters.project)?.name ?? ""}`
@@ -154,21 +224,21 @@ export default function KanbanBoard({
             <button
               type="button"
               onClick={() => setShowNewProject(true)}
-              className="rounded-md border border-neutral-700 px-3 py-2 text-xs text-neutral-300 hover:bg-neutral-900"
+              className="rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
             >
               + Proyecto
             </button>
             <button
               type="button"
               onClick={() => setShowNewStatus(true)}
-              className="rounded-md border border-neutral-700 px-3 py-2 text-xs text-neutral-300 hover:bg-neutral-900"
+              className="rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
             >
               + Estado
             </button>
             <button
               type="button"
               onClick={() => setShowNewTask(true)}
-              className="rounded-md bg-[#ffcd07] px-3 py-2 text-sm font-semibold text-[#0a0a1a] hover:brightness-110"
+              className="rounded-md bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-fg)] hover:brightness-110"
             >
               + Tarea
             </button>
@@ -183,19 +253,24 @@ export default function KanbanBoard({
         />
       </header>
 
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
         <div className="flex h-full min-w-max gap-4 p-4">
           {statuses.map((status) => (
             <KanbanColumn
               key={status.id}
-              status={status.key}
-              label={status.label}
-              color={status.color}
+              status={status}
               tasks={grouped[status.key] ?? []}
-              onDrop={handleDrop}
-              onDragStart={(id) => setDraggingId(id)}
-              onDragEnd={() => setDraggingId(null)}
-              draggingId={draggingId}
+              isDragOver={false}
+              draggingTaskId={draggingTaskId}
+              draggingStatusId={draggingStatusId}
+              onTaskDrop={handleTaskDrop}
+              onTaskDragStart={(id) => setDraggingTaskId(id)}
+              onTaskDragEnd={() => setDraggingTaskId(null)}
+              onStatusDragStart={(id) => setDraggingStatusId(id)}
+              onStatusDragEnd={() => setDraggingStatusId(null)}
+              onStatusReorder={handleStatusReorder}
+              onStatusRename={handleStatusRename}
+              onStatusDelete={handleStatusDelete}
             />
           ))}
         </div>
