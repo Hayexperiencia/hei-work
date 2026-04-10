@@ -5,31 +5,36 @@ import { useCallback, useEffect, useState } from "react";
 import type { CommentWithAuthor } from "@/lib/queries/comments";
 import type { MemberWithStats } from "@/lib/queries/members";
 import type { TaskWithAssignee } from "@/lib/queries/tasks";
-import type { TaskPriority, TaskStatus } from "@/lib/types";
+import type { Project, TaskPriority, WorkflowStatus } from "@/lib/types";
+import { renderMarkdown } from "@/lib/markdown";
 
 import CommentThread from "./CommentThread";
 import CommentInput from "./CommentInput";
+import TagsInput from "./TagsInput";
 
 interface Props {
   initialTask: TaskWithAssignee;
   initialComments: CommentWithAuthor[];
   members: MemberWithStats[];
+  projects: Project[];
+  statuses: WorkflowStatus[];
 }
 
-const STATUSES: { value: TaskStatus; label: string }[] = [
-  { value: "backlog", label: "Backlog" },
-  { value: "in_progress", label: "En progreso" },
-  { value: "review", label: "Revision" },
-  { value: "done", label: "Hecho" },
-];
 const PRIORITIES: TaskPriority[] = ["low", "medium", "high", "urgent"];
 
-export default function TaskDetail({ initialTask, initialComments, members }: Props) {
+export default function TaskDetail({
+  initialTask,
+  initialComments,
+  members,
+  projects,
+  statuses,
+}: Props) {
   const [task, setTask] = useState(initialTask);
   const [comments, setComments] = useState(initialComments);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(task.title);
   const [descDraft, setDescDraft] = useState(task.description ?? "");
+  const [descMode, setDescMode] = useState<"edit" | "preview">("preview");
   const [savingDesc, setSavingDesc] = useState(false);
 
   const fetchComments = useCallback(async () => {
@@ -39,7 +44,6 @@ export default function TaskDetail({ initialTask, initialComments, members }: Pr
     setComments(data.comments ?? []);
   }, [task.id]);
 
-  // Polling cada 10s para comentarios nuevos
   useEffect(() => {
     const i = setInterval(fetchComments, 10_000);
     return () => clearInterval(i);
@@ -67,156 +71,275 @@ export default function TaskDetail({ initialTask, initialComments, members }: Pr
   }
 
   async function saveDesc() {
-    if (descDraft === (task.description ?? "")) return;
+    if (descDraft === (task.description ?? "")) {
+      setDescMode("preview");
+      return;
+    }
     setSavingDesc(true);
     await patchTask({ description: descDraft });
     setSavingDesc(false);
+    setDescMode("preview");
   }
 
-  async function handleStatusChange(status: TaskStatus) {
+  async function handleStatusChange(status: string) {
     await patchTask({ status });
   }
-
   async function handlePriorityChange(priority: TaskPriority) {
     await patchTask({ priority });
   }
-
   async function handleAssigneeChange(value: string) {
-    const id = value === "" ? null : Number(value);
-    await patchTask({ assignee_id: id });
+    await patchTask({ assignee_id: value === "" ? null : Number(value) });
+  }
+  async function handleProjectChange(value: string) {
+    if (!value) return;
+    await patchTask({ project_id: Number(value) });
+  }
+  async function handleDueDateChange(value: string) {
+    await patchTask({ due_date: value || null });
+  }
+  async function handleTagsChange(tags: string[]) {
+    await patchTask({ labels: tags });
   }
 
   async function handleCommentCreated(c: CommentWithAuthor) {
     setComments((prev) => [...prev, c]);
   }
 
+  const dueDateValue = task.due_date ? task.due_date.slice(0, 10) : "";
+
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8">
-      <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500">
-        <span
-          className="inline-block h-2 w-2 rounded-full"
-          style={{ background: task.project_color }}
-        />
-        {task.project_name} · #{task.id}
-      </div>
+    <div className="mx-auto max-w-7xl px-6 py-6">
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* Columna principal — fields + descripcion (3/4) */}
+        <div className="lg:col-span-3 space-y-6">
+          <div>
+            <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500">
+              <span
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ background: task.project_color }}
+              />
+              {task.project_name} · #{task.id}
+            </div>
 
-      {editingTitle ? (
-        <input
-          value={titleDraft}
-          autoFocus
-          onChange={(e) => setTitleDraft(e.target.value)}
-          onBlur={saveTitle}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-            if (e.key === "Escape") {
-              setTitleDraft(task.title);
-              setEditingTitle(false);
-            }
-          }}
-          className="w-full bg-transparent text-2xl font-semibold text-white border-b border-[#ffcd07] focus:outline-none"
-        />
-      ) : (
-        <h1
-          onClick={() => setEditingTitle(true)}
-          className="cursor-text text-2xl font-semibold text-white hover:bg-neutral-900/40 rounded px-1 -mx-1"
-          title="Click para editar"
-        >
-          {task.title}
-        </h1>
-      )}
-
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div>
-          <div className="text-[10px] uppercase tracking-wide text-neutral-500">Estado</div>
-          <select
-            value={task.status}
-            onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
-            className="mt-1 w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-white focus:border-[#ffcd07] focus:outline-none"
-          >
-            {STATUSES.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div className="text-[10px] uppercase tracking-wide text-neutral-500">Prioridad</div>
-          <select
-            value={task.priority}
-            onChange={(e) => handlePriorityChange(e.target.value as TaskPriority)}
-            className="mt-1 w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-white focus:border-[#ffcd07] focus:outline-none"
-          >
-            {PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div className="text-[10px] uppercase tracking-wide text-neutral-500">Asignado</div>
-          <select
-            value={task.assignee_id ?? ""}
-            onChange={(e) => handleAssigneeChange(e.target.value)}
-            className="mt-1 w-full rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-xs text-white focus:border-[#ffcd07] focus:outline-none"
-          >
-            <option value="">Sin asignar</option>
-            <optgroup label="Humanos">
-              {members
-                .filter((m) => m.type === "human")
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-            </optgroup>
-            <optgroup label="Agentes">
-              {members
-                .filter((m) => m.type === "agent")
-                .map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-            </optgroup>
-          </select>
-        </div>
-
-        <div>
-          <div className="text-[10px] uppercase tracking-wide text-neutral-500">Creada</div>
-          <div className="mt-1 text-xs text-neutral-400">
-            {new Date(task.created_at).toLocaleDateString("es-CO", {
-              day: "2-digit",
-              month: "short",
-            })}
+            {editingTitle ? (
+              <input
+                value={titleDraft}
+                autoFocus
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onBlur={saveTitle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                  if (e.key === "Escape") {
+                    setTitleDraft(task.title);
+                    setEditingTitle(false);
+                  }
+                }}
+                className="w-full bg-transparent text-2xl font-semibold text-white border-b border-[#ffcd07] focus:outline-none"
+              />
+            ) : (
+              <h1
+                onClick={() => setEditingTitle(true)}
+                className="cursor-text text-2xl font-semibold text-white hover:bg-neutral-900/40 rounded px-1 -mx-1"
+                title="Click para editar"
+              >
+                {task.title}
+              </h1>
+            )}
           </div>
+
+          {/* Grid de metadata */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <Field label="Proyecto">
+              <select
+                value={task.project_id}
+                onChange={(e) => handleProjectChange(e.target.value)}
+                className="select"
+              >
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Estado">
+              <select
+                value={task.status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="select"
+              >
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Prioridad">
+              <select
+                value={task.priority}
+                onChange={(e) => handlePriorityChange(e.target.value as TaskPriority)}
+                className="select"
+              >
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Asignado">
+              <select
+                value={task.assignee_id ?? ""}
+                onChange={(e) => handleAssigneeChange(e.target.value)}
+                className="select"
+              >
+                <option value="">Sin asignar</option>
+                <optgroup label="Humanos">
+                  {members
+                    .filter((m) => m.type === "human")
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Agentes">
+                  {members
+                    .filter((m) => m.type === "agent")
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                </optgroup>
+              </select>
+            </Field>
+
+            <Field label="Fecha limite">
+              <input
+                type="date"
+                value={dueDateValue}
+                onChange={(e) => handleDueDateChange(e.target.value)}
+                className="select"
+              />
+            </Field>
+
+            <Field label="Creada">
+              <div className="mt-1 text-xs text-neutral-400">
+                {new Date(task.created_at).toLocaleDateString("es-CO", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </div>
+            </Field>
+
+            <div className="col-span-2 sm:col-span-3 lg:col-span-2">
+              <Field label="Etiquetas">
+                <TagsInput value={task.labels ?? []} onChange={handleTagsChange} />
+              </Field>
+            </div>
+          </div>
+
+          {/* Descripcion */}
+          <section>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-wide text-neutral-500">
+                Descripcion {savingDesc && <span className="text-neutral-600">guardando...</span>}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDescMode("edit")}
+                  className={`rounded px-2 py-0.5 text-[10px] uppercase ${
+                    descMode === "edit"
+                      ? "bg-neutral-800 text-white"
+                      : "text-neutral-500 hover:text-white"
+                  }`}
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDescMode("preview")}
+                  className={`rounded px-2 py-0.5 text-[10px] uppercase ${
+                    descMode === "preview"
+                      ? "bg-neutral-800 text-white"
+                      : "text-neutral-500 hover:text-white"
+                  }`}
+                >
+                  Vista
+                </button>
+              </div>
+            </div>
+            {descMode === "edit" ? (
+              <textarea
+                value={descDraft}
+                onChange={(e) => setDescDraft(e.target.value)}
+                onBlur={saveDesc}
+                rows={8}
+                placeholder="Markdown soportado. Click fuera para guardar."
+                className="w-full rounded border border-neutral-800 bg-neutral-900 p-3 text-sm text-white focus:border-[#ffcd07] focus:outline-none"
+              />
+            ) : (
+              <div
+                onClick={() => setDescMode("edit")}
+                className="prose prose-sm prose-invert min-h-[5rem] cursor-text rounded border border-neutral-800 bg-neutral-900/40 p-3 text-sm text-neutral-200 [&_a]:text-[#ffcd07] [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_code]:bg-neutral-900 [&_code]:px-1 [&_code]:rounded"
+                dangerouslySetInnerHTML={{
+                  __html: descDraft.trim()
+                    ? renderMarkdown(descDraft)
+                    : '<p class="text-neutral-600">Sin descripcion. Click para escribir.</p>',
+                }}
+              />
+            )}
+          </section>
         </div>
+
+        {/* Columna comentarios (1/4) */}
+        <aside className="lg:col-span-1">
+          <div className="sticky top-4 space-y-3">
+            <div className="text-[10px] uppercase tracking-wide text-neutral-500">
+              Hilo · {comments.length} comentario{comments.length === 1 ? "" : "s"}
+            </div>
+            <CommentThread comments={comments} />
+            <CommentInput
+              taskId={task.id}
+              members={members}
+              onCreated={handleCommentCreated}
+            />
+          </div>
+        </aside>
       </div>
 
-      <section className="mt-6">
-        <div className="text-[10px] uppercase tracking-wide text-neutral-500">
-          Descripcion {savingDesc && <span className="text-neutral-600">guardando...</span>}
-        </div>
-        <textarea
-          value={descDraft}
-          onChange={(e) => setDescDraft(e.target.value)}
-          onBlur={saveDesc}
-          rows={4}
-          placeholder="Sin descripcion. Click para escribir."
-          className="mt-1 w-full rounded border border-neutral-800 bg-neutral-900 p-3 text-sm text-white focus:border-[#ffcd07] focus:outline-none"
-        />
-      </section>
+      <style>{`
+        .select {
+          margin-top: 0.25rem;
+          width: 100%;
+          border-radius: 0.25rem;
+          border: 1px solid #262626;
+          background: #171717;
+          padding: 0.375rem 0.5rem;
+          font-size: 0.75rem;
+          color: white;
+        }
+        .select:focus {
+          border-color: #ffcd07;
+          outline: none;
+        }
+      `}</style>
+    </div>
+  );
+}
 
-      <section className="mt-8">
-        <div className="text-[10px] uppercase tracking-wide text-neutral-500 mb-2">
-          Hilo · {comments.length} comentario{comments.length === 1 ? "" : "s"}
-        </div>
-        <CommentThread comments={comments} />
-        <CommentInput taskId={task.id} onCreated={handleCommentCreated} />
-      </section>
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wide text-neutral-500">{label}</div>
+      {children}
     </div>
   );
 }

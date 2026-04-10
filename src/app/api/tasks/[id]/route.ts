@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 
 import { badRequest, notFound, requireSession, serverError } from "@/lib/api-helpers";
+import { createNotification } from "@/lib/queries/notifications";
 import { getTask, reorderTasks, updateTask } from "@/lib/queries/tasks";
-import type { TaskPriority, TaskStatus } from "@/lib/types";
+import { listStatuses } from "@/lib/queries/statuses";
+import type { TaskPriority } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const VALID_STATUS: TaskStatus[] = ["backlog", "in_progress", "review", "done"];
 const VALID_PRIORITY: TaskPriority[] = ["low", "medium", "high", "urgent"];
+
+async function getStatusKeys(): Promise<Set<string>> {
+  const statuses = await listStatuses(1);
+  return new Set(statuses.map((s) => s.key));
+}
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -46,17 +52,19 @@ export async function PATCH(req: Request, ctx: RouteContext) {
     return badRequest("invalid json body");
   }
 
+  const statusKeys = await getStatusKeys();
+
   // Caso especial: reordenar columna entera
   if (body.action === "reorder" && Array.isArray(body.ordered_ids)) {
     const targetStatus = String(body.status ?? "");
-    if (!VALID_STATUS.includes(targetStatus as TaskStatus)) {
+    if (!statusKeys.has(targetStatus)) {
       return badRequest("invalid status");
     }
     const ids = (body.ordered_ids as unknown[])
       .map((v) => Number(v))
       .filter((v) => Number.isFinite(v));
     try {
-      await reorderTasks(taskId, targetStatus as TaskStatus, ids);
+      await reorderTasks(taskId, targetStatus, ids);
       const task = await getTask(taskId);
       return NextResponse.json({ task });
     } catch (err) {
@@ -65,16 +73,19 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   }
 
   // Update normal de campos
+  const before = await getTask(taskId);
+  if (!before) return notFound("task_not_found");
+
   const patch: Parameters<typeof updateTask>[1] = {};
   if (typeof body.title === "string") patch.title = body.title.trim();
   if ("description" in body) {
     patch.description = body.description == null ? null : String(body.description);
   }
   if (typeof body.status === "string") {
-    if (!VALID_STATUS.includes(body.status as TaskStatus)) {
+    if (!statusKeys.has(body.status)) {
       return badRequest("invalid status");
     }
-    patch.status = body.status as TaskStatus;
+    patch.status = body.status;
   }
   if (typeof body.priority === "string") {
     if (!VALID_PRIORITY.includes(body.priority as TaskPriority)) {
@@ -85,6 +96,10 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   if ("assignee_id" in body) {
     const v = body.assignee_id;
     patch.assigneeId = v == null ? null : Number(v);
+  }
+  if ("project_id" in body) {
+    const v = Number(body.project_id);
+    if (Number.isFinite(v) && v > 0) patch.projectId = v;
   }
   if ("due_date" in body) {
     const v = body.due_date;
@@ -99,6 +114,22 @@ export async function PATCH(req: Request, ctx: RouteContext) {
   try {
     const updated = await updateTask(taskId, patch);
     if (!updated) return notFound("task_not_found");
+
+    // Notificar al nuevo assignee si cambio
+    if (
+      patch.assigneeId &&
+      patch.assigneeId !== before.assignee_id &&
+      patch.assigneeId !== guard.session.memberId
+    ) {
+      await createNotification({
+        recipientId: patch.assigneeId,
+        actorId: guard.session.memberId,
+        type: "assigned",
+        taskId,
+        payload: { title: updated.title },
+      });
+    }
+
     return NextResponse.json({ task: updated });
   } catch (err) {
     return serverError((err as Error).message);

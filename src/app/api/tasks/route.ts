@@ -1,33 +1,46 @@
 import { NextResponse } from "next/server";
 
 import { badRequest, requireSession, serverError } from "@/lib/api-helpers";
-import { createTask, listTasks } from "@/lib/queries/tasks";
-import type { TaskPriority, TaskStatus } from "@/lib/types";
+import { createTask, listTasks, type ListTasksOpts } from "@/lib/queries/tasks";
+import { createNotification } from "@/lib/queries/notifications";
+import type { TaskPriority } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const VALID_PRIORITY: TaskPriority[] = ["low", "medium", "high", "urgent"];
-const VALID_STATUS: TaskStatus[] = ["backlog", "in_progress", "review", "done"];
 
 export async function GET(req: Request) {
   const guard = await requireSession();
   if (!guard.ok) return guard.response;
 
   const { searchParams } = new URL(req.url);
+  const opts: ListTasksOpts = { workspaceId: 1 };
+
   const projectId = searchParams.get("project_id");
+  if (projectId) opts.projectId = Number(projectId);
+
   const status = searchParams.get("status");
-  const assigneeId = searchParams.get("assignee_id");
+  if (status) opts.status = status;
+
+  const assignee = searchParams.get("assignee_id");
+  if (assignee === "unassigned") opts.assigneeId = "unassigned";
+  else if (assignee) opts.assigneeId = Number(assignee);
+
+  const tags = searchParams.get("tags");
+  if (tags) opts.tags = tags.split(",").map((t) => t.trim()).filter(Boolean);
+
+  const dueFrom = searchParams.get("due_from");
+  if (dueFrom) opts.dueFrom = dueFrom;
+  const dueTo = searchParams.get("due_to");
+  if (dueTo) opts.dueTo = dueTo;
+  const createdFrom = searchParams.get("created_from");
+  if (createdFrom) opts.createdFrom = createdFrom;
+  const createdTo = searchParams.get("created_to");
+  if (createdTo) opts.createdTo = createdTo;
 
   try {
-    const tasks = await listTasks({
-      workspaceId: 1,
-      projectId: projectId ? Number(projectId) : undefined,
-      status: status && VALID_STATUS.includes(status as TaskStatus)
-        ? (status as TaskStatus)
-        : undefined,
-      assigneeId: assigneeId ? Number(assigneeId) : undefined,
-    });
+    const tasks = await listTasks(opts);
     return NextResponse.json({ tasks });
   } catch (err) {
     return serverError((err as Error).message);
@@ -81,6 +94,21 @@ export async function POST(req: Request) {
       taskType: typeof body.task_type === "string" ? body.task_type : "manual",
       createdBy: guard.session.memberId,
     });
+
+    // Notificar al assignee si no es el creador
+    if (
+      task.assignee_id &&
+      task.assignee_id !== guard.session.memberId
+    ) {
+      await createNotification({
+        recipientId: task.assignee_id,
+        actorId: guard.session.memberId,
+        type: "assigned",
+        taskId: task.id,
+        payload: { title: task.title },
+      });
+    }
+
     return NextResponse.json({ task }, { status: 201 });
   } catch (err) {
     return serverError((err as Error).message);

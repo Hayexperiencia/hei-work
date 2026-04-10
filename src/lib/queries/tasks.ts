@@ -1,5 +1,6 @@
 import { query, withClient } from "@/lib/db";
-import type { Task, TaskStatus, TaskPriority } from "@/lib/types";
+import type { Task, TaskPriority } from "@/lib/types";
+type StatusKey = string;
 
 export interface TaskWithAssignee extends Task {
   assignee_name: string | null;
@@ -33,13 +34,20 @@ const TASK_FROM = `
   ) cc ON cc.task_id = t.id
 `;
 
-export async function listTasks(opts: {
+export interface ListTasksOpts {
   workspaceId?: number;
   projectId?: number;
-  status?: TaskStatus;
-  assigneeId?: number;
+  status?: string;
+  assigneeId?: number | "unassigned";
+  tags?: string[];
+  dueFrom?: string;
+  dueTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
   limit?: number;
-} = {}): Promise<TaskWithAssignee[]> {
+}
+
+export async function listTasks(opts: ListTasksOpts = {}): Promise<TaskWithAssignee[]> {
   const where: string[] = [];
   const params: unknown[] = [];
 
@@ -55,9 +63,31 @@ export async function listTasks(opts: {
     params.push(opts.status);
     where.push(`t.status = $${params.length}`);
   }
-  if (opts.assigneeId !== undefined) {
+  if (opts.assigneeId === "unassigned") {
+    where.push(`t.assignee_id IS NULL`);
+  } else if (typeof opts.assigneeId === "number") {
     params.push(opts.assigneeId);
     where.push(`t.assignee_id = $${params.length}`);
+  }
+  if (opts.tags && opts.tags.length > 0) {
+    params.push(opts.tags);
+    where.push(`t.labels && $${params.length}::text[]`);
+  }
+  if (opts.dueFrom) {
+    params.push(opts.dueFrom);
+    where.push(`t.due_date >= $${params.length}::date`);
+  }
+  if (opts.dueTo) {
+    params.push(opts.dueTo);
+    where.push(`t.due_date <= $${params.length}::date`);
+  }
+  if (opts.createdFrom) {
+    params.push(opts.createdFrom);
+    where.push(`t.created_at >= $${params.length}::timestamptz`);
+  }
+  if (opts.createdTo) {
+    params.push(opts.createdTo);
+    where.push(`t.created_at <= $${params.length}::timestamptz`);
   }
 
   const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
@@ -124,9 +154,10 @@ export async function createTask(input: CreateTaskInput): Promise<TaskWithAssign
 export interface UpdateTaskInput {
   title?: string;
   description?: string | null;
-  status?: TaskStatus;
+  status?: StatusKey;
   priority?: TaskPriority;
   assigneeId?: number | null;
+  projectId?: number;
   dueDate?: string | null;
   labels?: string[];
   sortOrder?: number;
@@ -148,6 +179,8 @@ export async function updateTask(
   if (input.description !== undefined) push("description", input.description);
   if (input.status !== undefined) {
     push("status", input.status);
+    // 'done' es legacy; en general el frontend marca completed_at
+    // explicito via API si hace falta. Mantenemos compat con done.
     if (input.status === "done") {
       sets.push("completed_at = NOW()");
     } else {
@@ -156,6 +189,7 @@ export async function updateTask(
   }
   if (input.priority !== undefined) push("priority", input.priority);
   if (input.assigneeId !== undefined) push("assignee_id", input.assigneeId);
+  if (input.projectId !== undefined) push("project_id", input.projectId);
   if (input.dueDate !== undefined) push("due_date", input.dueDate);
   if (input.labels !== undefined) push("labels", input.labels);
   if (input.sortOrder !== undefined) push("sort_order", input.sortOrder);
@@ -177,7 +211,7 @@ export async function updateTask(
 
 export async function reorderTasks(
   movedId: number,
-  targetStatus: TaskStatus,
+  targetStatus: StatusKey,
   orderedIds: number[],
 ): Promise<void> {
   await withClient(async (c) => {

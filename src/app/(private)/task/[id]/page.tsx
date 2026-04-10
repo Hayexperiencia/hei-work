@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { listCommentsByTask } from "@/lib/queries/comments";
-import { listMembers } from "@/lib/queries/members";
+import { listMembers, listProjects } from "@/lib/queries/members";
+import { listStatuses } from "@/lib/queries/statuses";
 import { getTask } from "@/lib/queries/tasks";
 
 import TaskDetail from "./components/TaskDetail";
@@ -18,10 +19,12 @@ export default async function TaskPage({
   const taskId = Number(id);
   if (!Number.isFinite(taskId)) notFound();
 
-  const [task, comments, members] = await Promise.all([
+  const [task, comments, members, projects, statuses] = await Promise.all([
     getTask(taskId),
     listCommentsByTask(taskId),
     listMembers(1),
+    listProjects(1),
+    listStatuses(1),
   ]);
 
   if (!task) notFound();
@@ -36,7 +39,13 @@ export default async function TaskPage({
           ← Board
         </Link>
       </div>
-      <TaskDetail initialTask={task} initialComments={comments} members={members} />
+      <TaskDetail
+        initialTask={task}
+        initialComments={comments}
+        members={members}
+        projects={projects}
+        statuses={statuses}
+      />
     </div>
   );
 }

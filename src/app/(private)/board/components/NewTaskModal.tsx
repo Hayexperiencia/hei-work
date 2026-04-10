@@ -6,6 +6,8 @@ import type { TaskWithAssignee } from "@/lib/queries/tasks";
 import type { MemberWithStats } from "@/lib/queries/members";
 import type { Project, TaskPriority } from "@/lib/types";
 
+import TagsInput from "@/app/(private)/task/[id]/components/TagsInput";
+
 interface Props {
   projects: Project[];
   members: MemberWithStats[];
@@ -30,6 +32,8 @@ export default function NewTaskModal({
   const [assigneeId, setAssigneeId] = useState<number | "">("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -66,6 +70,8 @@ export default function NewTaskModal({
           assignee_id: assigneeId === "" ? null : assigneeId,
           priority,
           description: description.trim() || undefined,
+          due_date: dueDate || null,
+          labels: tags,
         }),
       });
       if (!r.ok) {
@@ -179,6 +185,23 @@ export default function NewTaskModal({
               </optgroup>
             </select>
           </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs text-neutral-400">Fecha limite</span>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-white focus:border-[#ffcd07] focus:outline-none"
+              />
+            </label>
+
+            <div>
+              <span className="text-xs text-neutral-400">Etiquetas</span>
+              <TagsInput value={tags} onChange={setTags} />
+            </div>
+          </div>
 
           <label className="block">
             <span className="text-xs text-neutral-400">Descripcion (opcional)</span>

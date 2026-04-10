@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { auth, signOut } from "@/lib/auth";
 
+import NotificationBell from "./components/NotificationBell";
+
 const NAV = [
   { href: "/board", label: "Board" },
   { href: "/team", label: "Equipo" },
@@ -34,7 +36,7 @@ export default async function PrivateLayout({
           </div>
         </div>
 
-        <nav className="flex-1 px-2">
+        <nav className="flex-1 px-2 space-y-0.5">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -44,6 +46,7 @@ export default async function PrivateLayout({
               {item.label}
             </Link>
           ))}
+          <NotificationBell />
         </nav>
 
         <form action={logoutAction} className="px-2 pb-4">

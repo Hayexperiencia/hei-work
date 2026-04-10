@@ -3,7 +3,8 @@
 
 export type MemberType = "human" | "agent";
 
-export type TaskStatus = "backlog" | "in_progress" | "review" | "done";
+// TaskStatus es ahora dinamico (string libre) — los estados validos viven en hei_work_statuses
+export type TaskStatus = string;
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 export type ProjectStatus = "active" | "archived";
 
@@ -99,6 +100,36 @@ export interface AgentMemory {
   value: string;
   context: string | null;
   expires_at: string | null;
+  created_at: string;
+}
+
+export interface WorkflowStatus {
+  id: number;
+  workspace_id: number;
+  key: string;
+  label: string;
+  color: string;
+  position: number;
+  is_default: boolean;
+  is_terminal: boolean;
+  created_at: string;
+}
+
+export type NotificationType =
+  | "mention"
+  | "assigned"
+  | "comment_on_my_task"
+  | "task_status_changed";
+
+export interface Notification {
+  id: number;
+  recipient_id: number;
+  actor_id: number | null;
+  type: NotificationType;
+  task_id: number | null;
+  comment_id: number | null;
+  payload: Record<string, unknown>;
+  read_at: string | null;
   created_at: string;
 }
 

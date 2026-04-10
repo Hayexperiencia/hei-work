@@ -3,15 +3,15 @@
 import { useState } from "react";
 
 import type { TaskWithAssignee } from "@/lib/queries/tasks";
-import type { TaskStatus } from "@/lib/types";
 
 import TaskCard from "./TaskCard";
 
 interface Props {
-  status: TaskStatus;
+  status: string;
   label: string;
+  color?: string;
   tasks: TaskWithAssignee[];
-  onDrop: (status: TaskStatus, taskId: number) => void;
+  onDrop: (status: string, taskId: number) => void;
   onDragStart: (taskId: number) => void;
   onDragEnd: () => void;
   draggingId: number | null;
@@ -20,6 +20,7 @@ interface Props {
 export default function KanbanColumn({
   status,
   label,
+  color,
   tasks,
   onDrop,
   onDragStart,
@@ -46,7 +47,15 @@ export default function KanbanColumn({
       }}
     >
       <div className="flex items-center justify-between border-b border-neutral-800 px-3 py-2">
-        <h2 className="text-sm font-semibold text-neutral-300">{label}</h2>
+        <div className="flex items-center gap-2">
+          {color && (
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ background: color }}
+            />
+          )}
+          <h2 className="text-sm font-semibold text-neutral-300">{label}</h2>
+        </div>
         <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-400">
           {tasks.length}
         </span>
