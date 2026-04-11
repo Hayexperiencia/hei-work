@@ -62,10 +62,10 @@ export default function ProjectsClient({ initial, taskCounts }: Props) {
   }
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Proyectos</h1>
+          <h1 className="text-lg sm:text-xl font-semibold">Proyectos</h1>
           <p className="text-xs text-[var(--fg-muted)] mt-1">
             {projects.length} proyecto{projects.length === 1 ? "" : "s"}
           </p>
@@ -188,14 +188,14 @@ function ProjectModal({ project, onClose, onSaved }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/70 sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <form
         onSubmit={submit}
-        className="w-full max-w-2xl rounded-lg border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5"
+        className="w-full max-w-2xl sm:rounded-lg border-0 sm:border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5 max-h-full overflow-y-auto"
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">

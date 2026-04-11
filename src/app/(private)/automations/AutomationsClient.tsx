@@ -69,10 +69,10 @@ export default function AutomationsClient({ initial }: Props) {
   }
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Automatizaciones</h1>
+          <h1 className="text-lg sm:text-xl font-semibold">Automatizaciones</h1>
           <p className="text-xs text-[var(--fg-muted)] mt-1">
             {rules.length} regla{rules.length === 1 ? "" : "s"}
           </p>
@@ -165,7 +165,7 @@ export default function AutomationsClient({ initial }: Props) {
       </div>
 
       {creating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+        <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/70 sm:p-4">
           <div className="w-full max-w-md rounded-lg border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5 text-sm text-[var(--fg-secondary)]">
             <h2 className="mb-2 text-lg font-semibold text-[var(--fg-primary)]">
               Crear regla

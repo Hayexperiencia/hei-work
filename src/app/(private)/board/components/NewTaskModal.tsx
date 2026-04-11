@@ -88,14 +88,14 @@ export default function NewTaskModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/70 sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-lg border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5 shadow-2xl"
+        className="w-full max-w-md sm:rounded-lg border-0 sm:border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5 shadow-2xl max-h-full overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Nueva tarea</h2>

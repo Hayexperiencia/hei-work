@@ -161,10 +161,10 @@ export default function AgentEditor({ agent, actions, monthTokens }: Props) {
   }
 
   return (
-    <div className="mt-2 space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-[var(--fg-primary)]">{agent.name}</h1>
+    <div className="mt-2 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-semibold text-[var(--fg-primary)] truncate">{agent.name}</h1>
           <p className="text-xs text-[var(--fg-muted)] mt-1">
             {agent.role ?? "agent"} · #{agent.id}
           </p>
@@ -174,7 +174,7 @@ export default function AgentEditor({ agent, actions, monthTokens }: Props) {
             type="button"
             onClick={runNow}
             disabled={running}
-            className="rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-40"
+            className="flex-1 sm:flex-none rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-40"
           >
             {running ? "Ejecutando..." : "▶ Run now"}
           </button>
@@ -182,7 +182,7 @@ export default function AgentEditor({ agent, actions, monthTokens }: Props) {
             type="button"
             onClick={save}
             disabled={saving}
-            className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-fg)] hover:brightness-110 disabled:opacity-50"
+            className="flex-1 sm:flex-none rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-fg)] hover:brightness-110 disabled:opacity-50"
           >
             {saving ? "Guardando..." : "Guardar"}
           </button>
@@ -216,7 +216,7 @@ export default function AgentEditor({ agent, actions, monthTokens }: Props) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
+        <div className="order-2 lg:order-1 lg:col-span-2 space-y-4">
           {/* SOUL editor */}
           <div className="rounded-lg border border-[var(--border-base)] bg-[var(--bg-card)]">
             <div className="border-b border-[var(--border-base)] px-4 py-3">
@@ -303,7 +303,7 @@ export default function AgentEditor({ agent, actions, monthTokens }: Props) {
           </div>
         </div>
 
-        <aside className="space-y-4">
+        <aside className="order-1 lg:order-2 space-y-4">
           <Section title="Modelo y temperatura">
             <label className="block">
               <span className="text-xs text-[var(--fg-secondary)]">Modelo</span>

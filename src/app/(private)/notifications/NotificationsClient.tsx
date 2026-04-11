@@ -72,10 +72,10 @@ export default function NotificationsClient({ initial }: Props) {
   }
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Notificaciones</h1>
+          <h1 className="text-lg sm:text-xl font-semibold">Notificaciones</h1>
           <p className="text-xs text-[var(--fg-muted)] mt-1">
             {unreadCount} sin leer · {notifications.length} totales
           </p>

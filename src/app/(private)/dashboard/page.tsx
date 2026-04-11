@@ -39,16 +39,16 @@ export default async function DashboardPage() {
   const trendMax = Math.max(1, ...trend.map((p) => p.count));
 
   return (
-    <div className="px-6 py-8 space-y-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-xl font-semibold">Dashboard</h1>
+        <h1 className="text-lg sm:text-xl font-semibold">Dashboard</h1>
         <p className="text-xs text-[var(--fg-muted)] mt-1">
           Estado del trabajo en curso
         </p>
       </div>
 
       {/* KPI cards */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <KpiCard label="Activas" value={kpis.active_tasks} accent />
         <KpiCard label="Total" value={kpis.total_tasks} />
         <KpiCard label="Hechas 30d" value={kpis.completed_30d} />

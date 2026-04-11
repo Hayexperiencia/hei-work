@@ -56,11 +56,43 @@ html,
 body {
   background: var(--bg-base);
   color: var(--fg-primary);
+  /* Safe area insets para iPhone con notch */
+  --sa-top: env(safe-area-inset-top, 0px);
+  --sa-bottom: env(safe-area-inset-bottom, 0px);
+  --sa-left: env(safe-area-inset-left, 0px);
+  --sa-right: env(safe-area-inset-right, 0px);
 }
 
 body {
   font-family: var(--font-montserrat), system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Prevent bounce on iOS when scrolling at body level */
+  overscroll-behavior-y: none;
 }
+
+/* Inputs nunca menos de 16px en mobile para evitar zoom automatico iOS */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch targets: minimo 44x44 en mobile para los botones */
+@media (max-width: 767px) {
+  button, a[role="button"], [role="tab"] {
+    min-height: 44px;
+  }
+}
+
+/* Utility: hide scrollbar pero mantener scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Safe bottom padding util */
+.pb-safe { padding-bottom: calc(1rem + var(--sa-bottom)); }
+.pt-safe { padding-top: calc(0.5rem + var(--sa-top)); }
 
 /* Estilos de markdown rendered */
 .prose-app a {

@@ -12,6 +12,8 @@ import CommentThread from "./CommentThread";
 import CommentInput from "./CommentInput";
 import TagsInput from "./TagsInput";
 
+type MobileTab = "detail" | "thread";
+
 interface Props {
   initialTask: TaskWithAssignee;
   initialComments: CommentWithAuthor[];
@@ -36,6 +38,7 @@ export default function TaskDetail({
   const [descDraft, setDescDraft] = useState(task.description ?? "");
   const [descMode, setDescMode] = useState<"edit" | "preview">("preview");
   const [savingDesc, setSavingDesc] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>("detail");
 
   const fetchComments = useCallback(async () => {
     const r = await fetch(`/api/tasks/${task.id}/comments`, { cache: "no-store" });
@@ -108,10 +111,40 @@ export default function TaskDetail({
   const dueDateValue = task.due_date ? task.due_date.slice(0, 10) : "";
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-6">
+      {/* Mobile tabs */}
+      <div className="lg:hidden mb-4 flex rounded-lg border border-[var(--border-base)] bg-[var(--bg-card)] p-1">
+        <button
+          type="button"
+          onClick={() => setMobileTab("detail")}
+          className={`flex-1 rounded-md px-3 py-2 text-xs font-medium ${
+            mobileTab === "detail"
+              ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]"
+              : "text-[var(--fg-muted)]"
+          }`}
+        >
+          Detalle
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("thread")}
+          className={`flex-1 rounded-md px-3 py-2 text-xs font-medium ${
+            mobileTab === "thread"
+              ? "bg-[var(--bg-hover)] text-[var(--fg-primary)]"
+              : "text-[var(--fg-muted)]"
+          }`}
+        >
+          Hilo {comments.length > 0 && `(${comments.length})`}
+        </button>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-4">
         {/* Columna principal — fields + descripcion (3/4) */}
-        <div className="lg:col-span-3 space-y-6">
+        <div
+          className={`lg:col-span-3 space-y-6 ${
+            mobileTab === "detail" ? "block" : "hidden"
+          } lg:block`}
+        >
           <div>
             <div className="mb-1 flex items-center gap-2 text-xs text-[var(--fg-muted)]">
               <span
@@ -134,12 +167,12 @@ export default function TaskDetail({
                     setEditingTitle(false);
                   }
                 }}
-                className="w-full bg-transparent text-2xl font-semibold text-[var(--fg-primary)] border-b border-[#ffcd07] focus:outline-none"
+                className="w-full bg-transparent text-xl sm:text-2xl font-semibold text-[var(--fg-primary)] border-b border-[var(--accent)] focus:outline-none"
               />
             ) : (
               <h1
                 onClick={() => setEditingTitle(true)}
-                className="cursor-text text-2xl font-semibold text-[var(--fg-primary)] hover:bg-[var(--bg-card)] rounded px-1 -mx-1"
+                className="cursor-text text-xl sm:text-2xl font-semibold text-[var(--fg-primary)] hover:bg-[var(--bg-card)] rounded px-1 -mx-1 break-words"
                 title="Click para editar"
               >
                 {task.title}
@@ -300,9 +333,13 @@ export default function TaskDetail({
         </div>
 
         {/* Columna comentarios (1/4) */}
-        <aside className="lg:col-span-1">
-          <div className="sticky top-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
+        <aside
+          className={`lg:col-span-1 ${
+            mobileTab === "thread" ? "block" : "hidden"
+          } lg:block`}
+        >
+          <div className="lg:sticky lg:top-4 space-y-3">
+            <div className="hidden lg:block text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">
               Hilo · {comments.length} comentario{comments.length === 1 ? "" : "s"}
             </div>
             <CommentThread comments={comments} />

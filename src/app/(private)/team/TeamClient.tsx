@@ -73,10 +73,10 @@ export default function TeamClient({ initial }: Props) {
   }
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Equipo</h1>
+          <h1 className="text-lg sm:text-xl font-semibold">Equipo</h1>
           <p className="text-xs text-[var(--fg-muted)] mt-1">
             {humans.length} humano{humans.length === 1 ? "" : "s"} ·{" "}
             {agents.length} agente{agents.length === 1 ? "" : "s"}
@@ -511,12 +511,12 @@ function ModalShell({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/70 sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-lg border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5">
+      <div className="w-full max-w-md sm:rounded-lg border-0 sm:border border-[var(--border-base)] bg-[var(--bg-elevated)] p-5 shadow-2xl max-h-full overflow-y-auto">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
           <button

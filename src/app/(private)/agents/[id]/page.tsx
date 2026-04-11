@@ -61,7 +61,7 @@ export default async function AgentPage({ params }: PageProps) {
   const monthTokens = monthTokensR.rows[0]?.used ?? 0;
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 sm:px-6 py-6 sm:py-8">
       <Link
         href="/team"
         className="text-xs text-[var(--fg-muted)] hover:text-[var(--fg-secondary)]"

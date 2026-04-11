@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth, signOut } from "@/lib/auth";
 
+import BottomNav from "./components/BottomNav";
 import NotificationBell from "./components/NotificationBell";
 import ThemeToggle from "./components/ThemeToggle";
 
@@ -27,15 +28,18 @@ export default async function PrivateLayout({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  const userName = session.user.name ?? session.user.email ?? "sesion";
+
   return (
     <div className="flex min-h-screen bg-[var(--bg-base)] text-[var(--fg-primary)]">
+      {/* Sidebar: desktop only */}
       <aside className="hidden md:flex md:flex-col w-56 flex-shrink-0 border-r border-[var(--border-base)] bg-[var(--bg-elevated)]">
         <div className="px-5 py-6">
           <div className="text-lg font-semibold tracking-tight">
             HEI <span className="text-[var(--accent)]">Work</span>
           </div>
-          <div className="text-xs text-[var(--fg-muted)] mt-1">
-            {session.user.name ?? session.user.email}
+          <div className="text-xs text-[var(--fg-muted)] mt-1 truncate">
+            {userName}
           </div>
         </div>
 
@@ -66,7 +70,13 @@ export default async function PrivateLayout({
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 overflow-x-hidden">{children}</main>
+      {/* Bottom nav + drawer: mobile only */}
+      <BottomNav logoutAction={logoutAction} userName={userName} />
+
+      {/* pb-[72px] para que el contenido no quede tapado por el bottom nav en mobile */}
+      <main className="flex-1 min-w-0 overflow-x-hidden pb-[72px] md:pb-0">
+        {children}
+      </main>
     </div>
   );
 }

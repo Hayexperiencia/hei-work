@@ -8,6 +8,7 @@ import type { MemberWithStats } from "@/lib/queries/members";
 import type { Project, WorkflowStatus } from "@/lib/types";
 
 import KanbanColumn from "./KanbanColumn";
+import MobileTaskRow from "./MobileTaskRow";
 import NewTaskModal from "./NewTaskModal";
 import NewProjectModal from "./NewProjectModal";
 import NewStatusModal from "./NewStatusModal";
@@ -44,14 +45,22 @@ export default function KanbanBoard({
   const [showNewTask, setShowNewTask] = React.useState(false);
   const [showNewProject, setShowNewProject] = React.useState(false);
   const [showNewStatus, setShowNewStatus] = React.useState(false);
+  const [showFilters, setShowFilters] = React.useState(false);
   const [draggingTaskId, setDraggingTaskId] = React.useState<number | null>(null);
   const [draggingStatusId, setDraggingStatusId] = React.useState<number | null>(null);
+  // En mobile mostramos solo UNA columna a la vez; el state es la key visible.
+  const [mobileStatusKey, setMobileStatusKey] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setTasks(initialTasks);
   }, [initialTasks]);
   React.useEffect(() => {
     setStatuses(initialStatuses);
+    // Si no hay status seleccionado o el seleccionado ya no existe, usa el primero
+    setMobileStatusKey((prev) => {
+      if (prev && initialStatuses.some((s) => s.key === prev)) return prev;
+      return initialStatuses[0]?.key ?? null;
+    });
   }, [initialStatuses]);
 
   const fetchTasks = React.useCallback(async () => {
@@ -206,13 +215,25 @@ export default function KanbanBoard({
     await fetchTasks();
   }
 
+  const activeFilterCount =
+    (filters.project ? 1 : 0) +
+    (filters.assignee ? 1 : 0) +
+    (filters.tags.length > 0 ? 1 : 0) +
+    (filters.dueFrom ? 1 : 0) +
+    (filters.dueTo ? 1 : 0) +
+    (filters.createdFrom ? 1 : 0) +
+    (filters.createdTo ? 1 : 0);
+
+  const mobileStatus = statuses.find((s) => s.key === mobileStatusKey) ?? statuses[0];
+  const mobileTasks = mobileStatus ? (grouped[mobileStatus.key] ?? []) : [];
+
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      <header className="flex-shrink-0 sticky top-0 z-20 border-b border-[var(--border-base)] bg-[var(--bg-elevated)] px-6 py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-xl font-semibold">Board</h1>
-            <p className="text-xs text-[var(--fg-muted)] mt-1">
+    <div className="flex h-[calc(100vh-72px)] md:h-screen flex-col overflow-hidden">
+      <header className="flex-shrink-0 sticky top-0 z-20 border-b border-[var(--border-base)] bg-[var(--bg-elevated)] px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-semibold">Board</h1>
+            <p className="text-xs text-[var(--fg-muted)] mt-0.5">
               {tasks.length} tarea{tasks.length === 1 ? "" : "s"}
               {filters.project
                 ? ` · ${projects.find((p) => p.id === filters.project)?.name ?? ""}`
@@ -220,40 +241,85 @@ export default function KanbanBoard({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 justify-end">
+            <button
+              type="button"
+              onClick={() => setShowFilters(true)}
+              className="md:hidden rounded-md border border-[var(--border-strong)] px-2.5 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
+            >
+              Filtros
+              {activeFilterCount > 0 && (
+                <span className="ml-1 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-[var(--accent-fg)]">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
             <button
               type="button"
               onClick={() => setShowNewProject(true)}
-              className="rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
+              className="hidden sm:block rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
             >
               + Proyecto
             </button>
             <button
               type="button"
               onClick={() => setShowNewStatus(true)}
-              className="rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
+              className="hidden sm:block rounded-md border border-[var(--border-strong)] px-3 py-2 text-xs text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)]"
             >
               + Estado
             </button>
             <button
               type="button"
               onClick={() => setShowNewTask(true)}
-              className="rounded-md bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[var(--accent-fg)] hover:brightness-110"
+              className="rounded-md bg-[var(--accent)] px-3 py-2 text-xs sm:text-sm font-semibold text-[var(--accent-fg)] hover:brightness-110"
             >
               + Tarea
             </button>
           </div>
         </div>
 
-        <FiltersBar
-          projects={projects}
-          members={members}
-          filters={filters}
-          onApply={applyFilters}
-        />
+        {/* Filtros inline solo en desktop */}
+        <div className="hidden md:block">
+          <FiltersBar
+            projects={projects}
+            members={members}
+            filters={filters}
+            onApply={applyFilters}
+          />
+        </div>
+
+        {/* Tabs de status solo en mobile */}
+        <div className="md:hidden -mx-4 mt-3 overflow-x-auto no-scrollbar">
+          <div className="flex gap-1 px-4 pb-1">
+            {statuses.map((s) => {
+              const active = s.key === mobileStatusKey;
+              const cnt = (grouped[s.key] ?? []).length;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setMobileStatusKey(s.key)}
+                  className={`flex-shrink-0 rounded-full border px-3 py-1.5 text-xs transition ${
+                    active
+                      ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--fg-primary)]"
+                      : "border-[var(--border-base)] text-[var(--fg-secondary)]"
+                  }`}
+                >
+                  <span
+                    className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle"
+                    style={{ background: s.color }}
+                  />
+                  {s.label}
+                  <span className="ml-1.5 text-[var(--fg-muted)]">({cnt})</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
+      {/* Desktop: kanban horizontal */}
+      <div className="hidden md:block flex-1 min-h-0 overflow-x-auto overflow-y-hidden">
         <div className="flex h-full min-w-max gap-4 p-4">
           {statuses.map((status) => (
             <KanbanColumn
@@ -275,6 +341,73 @@ export default function KanbanBoard({
           ))}
         </div>
       </div>
+
+      {/* Mobile: una sola columna */}
+      <div className="md:hidden flex-1 min-h-0 overflow-y-auto p-3">
+        {!mobileStatus ? (
+          <div className="p-8 text-center text-xs text-[var(--fg-muted)]">
+            Sin estados configurados
+          </div>
+        ) : mobileTasks.length === 0 ? (
+          <div className="p-8 text-center text-xs text-[var(--fg-muted)]">
+            Sin tareas en {mobileStatus.label}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {mobileTasks.map((t) => (
+              <MobileTaskRow
+                key={t.id}
+                task={t}
+                statuses={statuses}
+                currentStatusKey={mobileStatus.key}
+                onMove={async (newStatus) => {
+                  await handleTaskDrop(newStatus, t.id);
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Drawer de filtros (mobile) */}
+      {showFilters && (
+        <div
+          className="md:hidden fixed inset-0 z-50 flex items-end bg-black/60"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowFilters(false);
+          }}
+        >
+          <div className="w-full max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-[var(--border-base)] bg-[var(--bg-elevated)] pb-safe">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border-base)] bg-[var(--bg-elevated)] px-4 py-3">
+              <h3 className="text-sm font-semibold">Filtros</h3>
+              <button
+                type="button"
+                onClick={() => setShowFilters(false)}
+                className="text-xl leading-none text-[var(--fg-muted)] hover:text-[var(--fg-primary)]"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4">
+              <FiltersBar
+                projects={projects}
+                members={members}
+                filters={filters}
+                onApply={(next) => {
+                  applyFilters(next);
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFilters(false)}
+              className="w-full border-t border-[var(--border-base)] py-3 text-sm text-[var(--fg-secondary)]"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {showNewTask && (
         <NewTaskModal

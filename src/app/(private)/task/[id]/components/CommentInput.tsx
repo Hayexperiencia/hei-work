@@ -140,7 +140,7 @@ export default function CommentInput({ taskId, members, onCreated }: Props) {
   return (
     <div className="mt-4 rounded-lg border border-[var(--border-base)] bg-[var(--bg-card)]">
       {/* Tabs */}
-      <div className="flex items-center justify-between border-b border-[var(--border-base)] px-2 py-1">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[var(--border-base)] px-2 py-1 gap-1">
         <div className="flex gap-1">
           <button
             type="button"
@@ -162,7 +162,7 @@ export default function CommentInput({ taskId, members, onCreated }: Props) {
           </button>
         </div>
         {tab === "edit" && (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex overflow-x-auto no-scrollbar gap-0.5 -mx-1 px-1 sm:flex-wrap sm:gap-1 sm:mx-0 sm:px-0">
             {ACTIONS.map((a) => (
               <button
                 key={a.label}
