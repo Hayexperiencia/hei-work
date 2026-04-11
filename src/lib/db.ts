@@ -26,7 +26,17 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params: ReadonlyArray<unknown> = [],
 ): Promise<QueryResult<T>> {
-  return pool.query<T>(text, params as unknown[]);
+  try {
+    return await pool.query<T>(text, params as unknown[]);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("[db.query] failed:", (err as Error).message);
+    // eslint-disable-next-line no-console
+    console.error("[db.query] sql:", text.slice(0, 300).replace(/\s+/g, " "));
+    // eslint-disable-next-line no-console
+    console.error("[db.query] params:", JSON.stringify(params).slice(0, 500));
+    throw err;
+  }
 }
 
 export async function withClient<T>(

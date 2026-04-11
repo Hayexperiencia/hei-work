@@ -1,43 +1,33 @@
-// HEI Work — worker placeholder (Sprint 1)
-// El worker real con node-cron y executor de agentes llega en Sprint 3.
-// Por ahora solo escribe un heartbeat cada 60s para validar el ciclo
-// y darle senal al endpoint /api/health.
+// HEI Work — worker entry point
+// Hace dos cosas:
+// 1. Heartbeat cada 60s en hei_work_agent_memory para que /api/health sepa que esta vivo
+// 2. Scheduler de agentes (node-cron) que recarga config cada 60s y dispara executor
+//    cuando el cron de un agente activa.
 
-import { Pool } from "pg";
+import { pool, q } from "./db";
+import { logger } from "./logger";
+import { startScheduler } from "./scheduler";
 
-const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL ??
-    "postgresql://postgres:postgres@postgres-hayexperiencia:5432/hayexperiencia",
-  max: 2,
-});
-
-const log = (msg: string) => {
-  // eslint-disable-next-line no-console
-  console.log(`[worker] ${new Date().toISOString()} ${msg}`);
-};
+const log = logger("main");
 
 async function heartbeat() {
   try {
-    const r = await pool.query<{ id: number }>(
+    const r = await q<{ id: number }>(
       `SELECT id FROM hei_work_members
         WHERE workspace_id = 1 AND name = '@Investigador'
         LIMIT 1`,
     );
     const agentId = r.rows[0]?.id;
     if (!agentId) {
-      log("no @Investigador agent yet, skipping heartbeat");
+      log.debug("no @Investigador yet");
       return;
     }
-
-    await pool.query(
+    await q(
       `INSERT INTO hei_work_agent_memory (agent_id, key, value, context, expires_at)
        VALUES ($1, 'worker_heartbeat', $2, 'system', NOW() + INTERVAL '10 minutes')`,
       [agentId, new Date().toISOString()],
     );
-
-    // Mantener la tabla pequena: solo nos interesa el ultimo heartbeat
-    await pool.query(
+    await q(
       `DELETE FROM hei_work_agent_memory
         WHERE key = 'worker_heartbeat'
           AND id NOT IN (
@@ -46,22 +36,25 @@ async function heartbeat() {
              ORDER BY created_at DESC LIMIT 5
           )`,
     );
-    log("heartbeat ok");
+    log.debug("heartbeat ok");
   } catch (err) {
-    log(`heartbeat fail: ${(err as Error).message}`);
+    log.error("heartbeat fail", { err: (err as Error).message });
   }
 }
 
 async function main() {
-  log("starting worker (placeholder)");
+  log.info("starting worker");
   await heartbeat();
-  setInterval(heartbeat, 60_000);
+  setInterval(() => {
+    void heartbeat();
+  }, 60_000);
+  await startScheduler();
 }
 
 void main();
 
 const shutdown = async (signal: string) => {
-  log(`received ${signal}, draining`);
+  log.info(`received ${signal}, draining`);
   try {
     await pool.end();
   } finally {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import type { MemberWithStats } from "@/lib/queries/members";
@@ -146,7 +147,12 @@ export default function TeamClient({ initial }: Props) {
                     {initials(m.name)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-[var(--fg-primary)]">{m.name}</div>
+                    <Link
+                      href={`/agents/${m.id}`}
+                      className="font-medium text-[var(--fg-primary)] hover:text-[var(--accent)]"
+                    >
+                      {m.name}
+                    </Link>
                     <div className="text-xs text-emerald-400/80">{m.role ?? "agent"}</div>
                   </div>
                   <MemberActions onEdit={() => setEditing(m)} onDelete={() => handleDelete(m)} />

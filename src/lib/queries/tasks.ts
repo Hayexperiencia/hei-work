@@ -219,8 +219,8 @@ export async function reorderTasks(
     try {
       await c.query(
         `UPDATE hei_work_tasks
-            SET status = $1,
-                completed_at = CASE WHEN $1='done' THEN NOW() ELSE NULL END,
+            SET status = $1::text,
+                completed_at = CASE WHEN $1::text='done' THEN NOW() ELSE NULL END,
                 updated_at = NOW()
           WHERE id = $2`,
         [targetStatus, movedId],
