@@ -13,7 +13,7 @@ import { runTool, TOOL_DEFS } from "./tools";
 import type { AgentRow } from "./types";
 
 const log = logger("mission-exec");
-const MAX_TOOL_LOOPS = 4;
+const MAX_TOOL_LOOPS = 8;
 
 interface MissionRow {
   id: number;

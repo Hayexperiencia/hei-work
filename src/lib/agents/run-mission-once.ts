@@ -9,7 +9,7 @@ import type { AgentMission, Member } from "@/lib/types";
 
 import { TOOL_DEFS, runToolWeb, type ToolContextWeb } from "./tools";
 
-const MAX_TOOL_LOOPS = 4;
+const MAX_TOOL_LOOPS = 8;
 const DEFAULT_RUN_BUDGET = 50_000;
 const DEFAULT_MONTH_BUDGET = 500_000;
 
