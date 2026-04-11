@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { query } from "@/lib/db";
+import { listMissions } from "@/lib/queries/missions";
 import type { Member } from "@/lib/types";
 
 import AgentEditor from "./AgentEditor";
@@ -60,6 +61,8 @@ export default async function AgentPage({ params }: PageProps) {
   );
   const monthTokens = monthTokensR.rows[0]?.used ?? 0;
 
+  const missions = await listMissions(agentId);
+
   return (
     <div className="px-4 sm:px-6 py-6 sm:py-8">
       <Link
@@ -73,6 +76,7 @@ export default async function AgentPage({ params }: PageProps) {
         agent={safeAgent}
         actions={actionsR.rows}
         monthTokens={monthTokens}
+        initialMissions={missions}
       />
     </div>
   );

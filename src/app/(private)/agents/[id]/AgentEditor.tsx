@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
-import type { Member } from "@/lib/types";
+import type { AgentMission, Member } from "@/lib/types";
+
+import MissionsSection from "./MissionsSection";
 
 type SafeMember = Omit<Member, "password_hash">;
 
@@ -23,6 +25,7 @@ interface Props {
   agent: SafeMember;
   actions: ActionRow[];
   monthTokens: number;
+  initialMissions: AgentMission[];
 }
 
 const AVAILABLE_TOOLS = [
@@ -67,7 +70,12 @@ interface AgentConfigUI {
   permissions?: Record<string, boolean>;
 }
 
-export default function AgentEditor({ agent, actions, monthTokens }: Props) {
+export default function AgentEditor({
+  agent,
+  actions,
+  monthTokens,
+  initialMissions,
+}: Props) {
   const initialConfig = (agent.config as AgentConfigUI) ?? {};
   const [config, setConfig] = useState<AgentConfigUI>({
     soul_text: initialConfig.soul_text ?? "",
@@ -214,6 +222,13 @@ export default function AgentEditor({ agent, actions, monthTokens }: Props) {
           />
         </div>
       </div>
+
+      {/* Misiones recurrentes */}
+      <MissionsSection
+        agentId={agent.id}
+        initial={initialMissions}
+        defaultSchedule={(config.schedule as string) ?? null}
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="order-2 lg:order-1 lg:col-span-2 space-y-4">

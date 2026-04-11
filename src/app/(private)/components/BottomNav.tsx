@@ -12,14 +12,17 @@ interface NavItem {
 
 const PRIMARY: NavItem[] = [
   { href: "/board", label: "Board", icon: "📋" },
-  { href: "/dashboard", label: "Resumen", icon: "📊" },
+  { href: "/business", label: "Negocio", icon: "💼" },
   { href: "/notifications", label: "Inbox", icon: "🔔" },
   { href: "/team", label: "Equipo", icon: "👥" },
 ];
 
 const SECONDARY: NavItem[] = [
+  { href: "/objectives", label: "OKRs", icon: "🎯" },
   { href: "/projects", label: "Proyectos", icon: "🗂️" },
+  { href: "/tools", label: "Tools", icon: "🔧" },
   { href: "/automations", label: "Automatizaciones", icon: "⚡" },
+  { href: "/dashboard", label: "Dashboard", icon: "📊" },
 ];
 
 interface Props {

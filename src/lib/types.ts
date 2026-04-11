@@ -103,6 +103,62 @@ export interface AgentMemory {
   created_at: string;
 }
 
+export type MissionOutputStrategy =
+  | "comment"
+  | "new_task"
+  | "vault_note"
+  | "harry_send"
+  | "multi";
+
+export interface AgentMission {
+  id: number;
+  agent_id: number;
+  name: string;
+  description: string | null;
+  instructions: string;
+  schedule: string | null;
+  output_strategy: MissionOutputStrategy;
+  output_config: Record<string, unknown>;
+  is_active: boolean;
+  last_run_at: string | null;
+  last_run_status: string | null;
+  last_run_action_id: number | null;
+  fire_count: number;
+  created_at: string;
+}
+
+export type MetricType = "number" | "percentage" | "currency" | "boolean";
+export type ObjectiveStatus = "active" | "achieved" | "abandoned";
+
+export interface Objective {
+  id: number;
+  workspace_id: number;
+  title: string;
+  description: string | null;
+  period: string;
+  status: ObjectiveStatus;
+  progress: number;
+  owner_id: number | null;
+  color: string;
+  created_at: string;
+}
+
+export interface KeyResult {
+  id: number;
+  objective_id: number;
+  title: string;
+  metric_type: MetricType;
+  current_value: number;
+  target_value: number;
+  start_value: number;
+  unit: string | null;
+  auto_source: string | null;
+  auto_source_args: Record<string, unknown>;
+  last_updated_at: string | null;
+  position: number;
+  created_at: string;
+}
+
 export interface WorkflowStatus {
   id: number;
   workspace_id: number;

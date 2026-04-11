@@ -9,8 +9,11 @@ import ThemeToggle from "./components/ThemeToggle";
 
 const NAV = [
   { href: "/board", label: "Board", icon: "📋" },
+  { href: "/business", label: "Negocio", icon: "💼" },
+  { href: "/objectives", label: "OKRs", icon: "🎯" },
   { href: "/projects", label: "Proyectos", icon: "🗂️" },
   { href: "/team", label: "Equipo", icon: "👥" },
+  { href: "/tools", label: "Tools", icon: "🔧" },
   { href: "/automations", label: "Automatizaciones", icon: "⚡" },
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
 ];
