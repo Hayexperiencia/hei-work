@@ -1,3 +1,5 @@
+> ⚠️ **DEPRECADO (2026-04-15)** — Este repo quedó obsoleto por decisión de arquitectura: HEI Work = Plane CE self-hosted, no este Next.js custom. Ver ADR `2026-04-15-replanteo-arquitectura`. Se conserva solo por historia. No recibir más commits.
+
 # HEI Work
 
 Sistema de project management donde humanos y agentes IA trabajan juntos como iguales. Capa de ejecucion del HayExperiencia OS.
